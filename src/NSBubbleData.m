@@ -136,5 +136,49 @@ const UIEdgeInsets imageInsetsSomeone = {11, 18, 16, 14};
     }
     return self;
 }
++ (id)dataWithImageUrl:(NSString *)imageURL date:(NSDate *)date type:(NSBubbleType)type
+
+{
+#if !__has_feature(objc_arc)
+    return [[[NSBubbleData alloc] initWithImageUrl:imageURL date:date type:type]; autorelease];
+#else
+    return [[NSBubbleData alloc] initWithImageUrl:imageURL date:date type:type];
+#endif
+}
+
+- (id)initWithImageUrl:(NSString *)imageURL date:(NSDate *)date type:(NSBubbleType)type
+{
+    _dataType = @"image";
+
+    NSURL *url = [NSURL URLWithString:imageURL];
+    NSData *data = [NSData dataWithContentsOfURL:url];
+    UIImage *img = [[UIImage alloc] initWithData:data];
+    CGSize size = img.size;
+    
+    UIImageView * imageView = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0,size.width,size.height)];
+   imageView.layer.cornerRadius = 5.0;
+   imageView.layer.masksToBounds = YES;
+   [imageView setContentMode:UIViewContentModeScaleAspectFill];
+   //[self.view addSubview:imageView];
+   
+   
+   
+   [DLImageLoader loadImageFromURL:imageURL
+                         completed:^(NSError *error, NSData *imgData) {
+                             imageView.image = [UIImage imageWithData:imgData];
+                             [imageView setContentMode:UIViewContentModeCenter];
+                        
+                         }];
+
+    
+    
+#if !__has_feature(objc_arc)
+    [imageView autorelease];
+#endif
+    
+    UIEdgeInsets insets = (type == BubbleTypeMine ? imageInsetsMine : imageInsetsSomeone);
+    return [self initWithView:imageView date:date type:type insets:insets];
+}
+
 
 @end
